@@ -211,7 +211,7 @@ if video_source is not None:
                     showlegend=True, legend=dict(font=dict(size=10)),
                     height=220,
                 )
-                class_chart.plotly_chart(fig_pie, use_container_width=True)
+                class_chart.plotly_chart(fig_pie, use_container_width=True, key="pie_chart")
 
             # Timeline chart
             if frame_count % 5 == 0:
@@ -228,7 +228,7 @@ if video_source is not None:
                     font_color="#e2e8f0", height=260,
                     margin=dict(t=36, b=30, l=40, r=10),
                 )
-                timeline_chart.plotly_chart(fig_line, use_container_width=True)
+                timeline_chart.plotly_chart(fig_line, use_container_width=True, key="timeline_chart")
 
                 # Crossing bar chart
                 if counter.counts:
@@ -244,7 +244,7 @@ if video_source is not None:
                         font_color="#e2e8f0", height=260, showlegend=False,
                         margin=dict(t=36, b=30, l=40, r=10),
                     )
-                    crossing_chart.plotly_chart(fig_bar, use_container_width=True)
+                    crossing_chart.plotly_chart(fig_bar, use_container_width=True, key="crossing_chart")
 
         cap.release()
         st.success(f"✅ Analysis complete! Processed **{frame_count}** frames · Total crossings: **{counter.total}**")
