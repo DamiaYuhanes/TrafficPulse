@@ -5,12 +5,28 @@
   <img src="https://img.shields.io/badge/YOLOv8-Ultralytics-FF4500?style=for-the-badge&logo=yolo&logoColor=white"/>
   <img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
   <img src="https://img.shields.io/badge/OpenCV-4.9%2B-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Deep%20Learning-Object%20Detection-10B981?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/ByteTrack-Multi--Object%20Tracking-10B981?style=for-the-badge"/>
 </p>
 
 <p align="center">
-  <b>Real-time multi-class vehicle detection, tracking, and traffic analytics powered by YOLOv8 and a sleek Streamlit dashboard.</b>
+  <b>Real-time multi-class vehicle detection, tracking, and traffic analytics powered by YOLOv8 + ByteTrack with a sleek Streamlit dashboard.</b>
 </p>
+
+---
+
+## 📸 Screenshots
+
+### Upload & Start
+![Upload Interface](assets/screenshot_upload.png)
+> Clean upload interface — supports MP4, AVI, MOV, MKV up to any size. Full sidebar controls for model, resolution, and overlays.
+
+### Live Detection — Heavy Traffic (32 Vehicles Detected)
+![Detection Heavy](assets/screenshot_detection.png)
+> YOLOv8s running at 1280px resolution with ByteTrack IDs, heatmap overlay, confidence labels, and real-time congestion scoring. **32 vehicles detected** with class breakdown in the donut chart.
+
+### Class Filter Mode — Bus Only
+![Filter Mode](assets/screenshot_filter.png)
+> Class filters let you isolate specific vehicle types. Here showing only buses with persistent track IDs across frames.
 
 ---
 
@@ -19,30 +35,14 @@
 | Feature | Description |
 |---|---|
 | 🎯 **Multi-class Detection** | Cars, trucks, buses, motorcycles, bicycles, pedestrians |
-| 🔁 **Real-time Tracking** | Centroid-based tracker maintains object identity across frames |
-| 📍 **Virtual Line Counter** | Count vehicles crossing a configurable line |
-| 🌡️ **Heatmap Overlay** | Visualize traffic density accumulation over time |
+| 🔁 **ByteTrack** | State-of-the-art multi-object tracker — persistent IDs, no ID swaps |
+| 🌡️ **Heatmap Overlay** | Visualize spatial traffic density accumulating over time |
+| 🔬 **CLAHE Enhancement** | Contrast boost before inference — catches objects in dark/flat areas |
+| 📍 **Virtual Line Counter** | Count vehicles crossing a configurable line per class |
 | 📊 **Congestion Scoring** | Free Flow → Light → Moderate → Heavy → Gridlock |
-| 📈 **Live Charts** | Vehicle count timeline + class distribution pie chart |
-| 🎛️ **Configurable** | Model size, confidence, class filters, line position |
-| 📹 **Video & Webcam** | Upload MP4/AVI/MOV or stream from webcam |
-
----
-
-## 🖥️ Dashboard Preview
-
-```
-┌─────────────────────────────┬────────────────────┐
-│                             │  📈 Live Stats      │
-│   🎥 Live Detection Feed    │  Vehicles: 23       │
-│   [Bounding boxes + labels] │  Congestion: Heavy  │
-│   [Heatmap overlay]         │  [Pie Chart]        │
-│   [Counter line]            │                     │
-├─────────────────────────────┴────────────────────┤
-│  📊 Vehicle Count Timeline  │ 🚗 Line Crossings   │
-│  [Area chart over time]     │ [Bar chart per class]│
-└──────────────────────────────────────────────────┘
-```
+| 📈 **Live Charts** | Vehicle count timeline + class distribution donut chart |
+| 🎛️ **Full Sidebar Control** | Model size, resolution, confidence, class filters, overlays |
+| 📹 **Video & Webcam** | Upload MP4/AVI/MOV or stream from webcam live |
 
 ---
 
@@ -67,14 +67,14 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-> YOLOv8 weights (`yolov8n.pt`) are downloaded automatically on first run (~6MB).
+> YOLOv8 weights are downloaded automatically on first run.
 
 ### 4. Launch the dashboard
 ```bash
 streamlit run app.py
 ```
 
-Open your browser at **http://localhost:8501** 🎉
+Open **http://localhost:8501** in your browser 🎉
 
 ---
 
@@ -83,10 +83,11 @@ Open your browser at **http://localhost:8501** 🎉
 ```
 TrafficPulse/
 ├── app.py            # Streamlit dashboard (main entry point)
-├── detector.py       # YOLOv8 detection engine + annotation
-├── tracker.py        # Centroid tracker + line crossing counter
-├── analytics.py      # Heatmap, congestion scoring, timeline
-├── requirements.txt  # Python dependencies
+├── detector.py       # YOLOv8 + ByteTrack engine, CLAHE preprocessing
+├── tracker.py        # Virtual line crossing counter
+├── analytics.py      # Heatmap accumulator, congestion scoring, timeline
+├── requirements.txt  # Dependencies
+├── assets/           # Screenshots & media
 └── README.md
 ```
 
@@ -98,24 +99,28 @@ TrafficPulse/
 Video Frame
     │
     ▼
-┌─────────────┐
-│  YOLOv8     │  ← Detects objects (class, bbox, confidence)
-└──────┬──────┘
+┌──────────────┐
+│ CLAHE Enhance│  ← Boost contrast for dark/low-quality footage
+└──────┬───────┘
        │
        ▼
-┌─────────────┐
-│  Centroid   │  ← Tracks objects across frames with unique IDs
-│  Tracker    │
-└──────┬──────┘
+┌──────────────┐
+│   YOLOv8s    │  ← Detect objects at 1280px resolution
+│  @1280px     │     conf=0.25, agnostic NMS, iou=0.45
+└──────┬───────┘
        │
-       ├──► Line Crossing Counter  (counts vehicles per class)
-       ├──► Heatmap Accumulator    (spatial density over time)
-       └──► Timeline Recorder      (count per second)
+       ▼
+┌──────────────┐
+│  ByteTrack   │  ← Assign persistent IDs across frames
+└──────┬───────┘
+       │
+       ├──► Line Counter    (per-class vehicle counts)
+       ├──► Heatmap         (spatial density over time)
+       └──► Timeline        (count per second chart)
                 │
                 ▼
         ┌──────────────┐
-        │  Streamlit   │  ← Renders annotated frames + charts
-        │  Dashboard   │
+        │  Streamlit   │  ← Annotated frames + live charts + stats
         └──────────────┘
 ```
 
@@ -125,9 +130,12 @@ Video Frame
 
 | Option | Default | Description |
 |---|---|---|
-| Model | `yolov8n.pt` | Nano (fast) / Small / Medium accuracy |
-| Confidence | `0.40` | Minimum detection confidence |
-| Heatmap | On | Overlay spatial density visualization |
+| Model | `yolov8s.pt` | n (fast) / s (balanced) / m / l (accurate) |
+| Resolution | `1280px` | Higher = detects small/distant objects |
+| Confidence | `0.25` | Lower = more detections |
+| CLAHE | On | Contrast enhancement before inference |
+| Heatmap | On | Spatial density overlay |
+| Track IDs | On | Show ByteTrack persistent IDs on boxes |
 | Counter Line | 50% | Vertical position of counting line |
 | Class Filter | All | Toggle individual vehicle classes |
 
@@ -136,8 +144,9 @@ Video Frame
 ## 🧪 Tested With
 
 - Python 3.10, 3.11, 3.12
-- Windows 11 / Ubuntu 22.04
-- CPU inference (real-time on YOLOv8n) and GPU (CUDA)
+- Windows 11
+- CPU inference (real-time on YOLOv8n/s) and GPU (CUDA)
+- 4K traffic footage (3840×2160 @ 30fps)
 
 ---
 
